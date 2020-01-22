@@ -1,0 +1,148 @@
+#/* $begin ncopy-ys */
+##################################################################
+# ncopy.ys - Copy a src block of len words to dst.
+# Return the number of positive words (>0) contained in src.
+#
+# Name: Zain Aamer
+# UIN: 674504516
+#
+# Describe how and why you modified the baseline code.
+# 1. Use iaddq instead of irmovq and addq/subq
+#
+# 2. Use iaddq $-1, %rdx for setting condition codes by
+#    putting it before the jump
+#
+# 3. Unrolled the loop 7 times, with the cleanup at the
+#    bottom in order to decrease the numner of comparisons
+#    performed.
+#
+# 4. Expanded the cleanup loop to explicitly clean the last
+#    values.
+#
+##################################################################
+# Do not modify this portion, Fall 2019
+# Function prologue.
+# %rdi = src, %rsi = dst, %rdx = len
+ncopy:
+
+##################################################################
+# You can modify this portion
+	# Loop header
+	xorq %rax, %rax		# count = 0;
+	iaddq $-7, %rdx		# len < 7?
+	jl Cleanup
+
+
+#### Unroll ####
+
+Loop:
+	mrmovq 48(%rdi), %r10	# read val from src...
+	rmmovq %r10, 48(%rsi)		# ...and store it to dst
+	andq %r10, %r10		# val <= 0? 
+	jle NPos1	# if so, goto NPos1:
+	iaddq $1, %rax		# count++
+
+NPos1:	mrmovq 40(%rdi), %r10	# read val from src...
+	rmmovq %r10, 40(%rsi)		# ...and store it to dst
+	andq %r10, %r10		# val <= 0? 
+	jle NPos2	# if so, goto NPos2:
+	iaddq $1, %rax		# count++
+
+NPos2:
+	mrmovq 32(%rdi), %r10	# read val from src...
+	rmmovq %r10, 32(%rsi)		# ...and store it to dst
+	andq %r10, %r10		# val <= 0? 
+	jle NPos3	# if so, goto NPos3:
+	iaddq $1, %rax		# count++
+
+NPos3:	mrmovq $24(%rdi), %r10	# read val from src...
+	rmmovq %r10, $24(%rsi)		# ...and store it to dst
+	andq %r10, %r10
+	jle NPos4	# if so, goto NPos4:
+	iaddq $1, %rax		# count++
+
+NPos4:	mrmovq 16(%rdi), %r10	# read val from src...
+	rmmovq %r10, 16(%rsi)		# ...and store it to dst
+	andq %r10, %r10
+	jle NPos5	# if so, goto NPos5:
+	iaddq $1, %rax		# count++
+
+NPos5:	mrmovq 8(%rdi), %r10	# read val from src...
+	rmmovq %r10, 8(%rsi)		# ...and store it to dst
+	andq %r10, %r10
+	jle NPos6	# if so, goto NPos6:
+	iaddq $1, %rax		# count++
+
+NPos6:	mrmovq (%rdi), %r10	# read val from src...
+	rmmovq %r10, (%rsi)		# ...and store it to dst
+	andq %r10, %r10
+	jle NPos7	# if so, goto NPos7:
+	iaddq $1, %rax		# count++
+
+NPos7:
+	iaddq $56, %rdi		# src+=7
+	iaddq $56, %rsi		# dst+=7
+	iaddq $-7, %rdx		# len-=7
+	jge Loop
+
+
+#### Cleanup ####
+
+Cleanup: iaddq $6, %rdx		# len <= 0?
+	jl Done		# if so, goto Done:
+
+Cleanup1:	mrmovq (%rdi), %r10	# read val from src...
+	rmmovq %r10, (%rsi)		# ...and store it to dst
+	andq %r10, %r10		# val <= 0? 
+	jle Cleanup2		# if so, goto Cleanup2:
+	iaddq $1, %rax		# count++
+
+Cleanup2: iaddq $-1, %rdx
+	jl Done
+	mrmovq 8(%rdi), %r10	# read val from src...
+	rmmovq %r10, 8(%rsi)		# ...and store it to dst
+	andq %r10, %r10		# val <= 0? 
+	jle Cleanup3		# if so, goto Cleanup3:
+	iaddq $1, %rax		# count++
+
+Cleanup3: iaddq $-1, %rdx
+	jl Done
+	mrmovq 16(%rdi), %r10	# read val from src...
+	rmmovq %r10, 16(%rsi)		# ...and store it to dst
+	andq %r10, %r10		# val <= 0? 
+	jle Cleanup4		# if so, goto Cleanup4:
+	iaddq $1, %rax		# count++
+
+Cleanup4: iaddq $-1, %rdx
+	jl Done
+	mrmovq 24(%rdi), %r10	# read val from src...
+	rmmovq %r10, 24(%rsi)		# ...and store it to dst
+	andq %r10, %r10		# val <= 0? 
+	jle Cleanup5		# if so, goto Cleanup5:
+	iaddq $1, %rax		# count++
+
+Cleanup5: iaddq $-1, %rdx
+	jl Done
+	mrmovq 32(%rdi), %r10	# read val from src...
+	rmmovq %r10, 32(%rsi)		# ...and store it to dst
+	andq %r10, %r10		# val <= 0? 
+	jle Cleanup6		# if so, goto Cleanup6:
+	iaddq $1, %rax		# count++
+
+Cleanup6: iaddq $-1, %rdx
+	jl Done
+	mrmovq 40(%rdi), %r10	# read val from src...
+	rmmovq %r10, 40(%rsi)		# ...and store it to dst
+	andq %r10, %r10		# val <= 0? 
+	jle Done		# if so, goto Done:
+	iaddq $1, %rax		# count++
+
+##################################################################
+# Do not modify the following section of code
+# Function epilogue.
+Done:
+	ret
+##################################################################
+# Keep the following label at the end of your function
+End:
+#/* $end ncopy-ys */
